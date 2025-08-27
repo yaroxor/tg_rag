@@ -1,0 +1,2 @@
+python explore.py > /dev/null  1.17s user 0.19s system 98% cpu 1.376 total
+jq -f explore.jq ../data/chat_export.json > /dev/null  4.88s user 0.10s system 99% cpu 5.019 total
