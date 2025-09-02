@@ -12,3 +12,4 @@ wheels/
 secrets.toml
 
 data/*
+!data/.gitkeep
