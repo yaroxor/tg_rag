@@ -1,7 +1,7 @@
 import tomllib
 
 import cohere
-from qdrant_client import QdrantClient, models
+from qdrant_client import QdrantClient
 from qdrant_client.models import Batch, VectorParams, Distance
 
 MODEL = "embed-multilingual-v3.0"
@@ -13,7 +13,7 @@ def get_data() -> str:
     return TEXT_TO_EMBED
 
 
-def instert_data(cohere_api_key: str, qdrant_cluster_url: str, qdrant_api_key: str, qdrant_collection_name: str):
+def insert_data(cohere_api_key: str, qdrant_cluster_url: str, qdrant_api_key: str, qdrant_collection_name: str, text_to_embed):
     cohere_client = cohere.Client(cohere_api_key)
     qdrant_client = QdrantClient(
         url=qdrant_cluster_url,
@@ -21,7 +21,7 @@ def instert_data(cohere_api_key: str, qdrant_cluster_url: str, qdrant_api_key: s
     )
 
     response = qdrant_client.create_collection(
-        collection_name=COLLECTION_NAME,
+        collection_name=qdrant_collection_name,
         vectors_config=VectorParams(
             size=MODEL_VECTOR_SIZE,
             distance=Distance.DOT
@@ -32,11 +32,11 @@ def instert_data(cohere_api_key: str, qdrant_cluster_url: str, qdrant_api_key: s
     embeddings = cohere_client.embed(
         model=MODEL,
         input_type="search_document",
-        texts=[TEXT_TO_EMBED]
+        texts=[text_to_embed]
     ).embeddings
 
     qdrant_client.upsert(
-        collection_name=COLLECTION_NAME,
+        collection_name=qdrant_collection_name,
         points=Batch(
             ids=[1],
             vectors=embeddings,
@@ -55,7 +55,15 @@ def main():
     qdrant_cluster_url = secrets["qdrant"]["cluster_url"]
     qdrant_collection_name = secrets["qdrant"]["collection_name"]
 
-    insert_data(cohere_api_key, qdrant_api_key, qdrant_cluster_url, qdrant_collection_name)
+
+    insert_data(
+        cohere_api_key=cohere_api_key,
+        qdrant_cluster_url=qdrant_cluster_url,
+        qdrant_api_key=qdrant_api_key,
+        qdrant_collection_name=qdrant_collection_name,
+        text_to_embed=data_to_embed
+    )
+
 
 if __name__ == "__main__":
     main()
